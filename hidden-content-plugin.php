@@ -49,16 +49,17 @@ function gice_gizli_icerik_filtre($content) {
             }
         }
     }
-    $ozel_mesaj = isset($options['ozel_mesaj']) ? $options['ozel_mesaj'] : '';
     $ozel_resim = isset($options['ozel_resim']) ? $options['ozel_resim'] : '';
+    $ozel_resim_link = isset($options['ozel_resim_link']) ? $options['ozel_resim_link'] : '';
 
     if ($is_gizli) {
         $output = '<div class="gice-gizli-icerik">';
         if (!empty($ozel_resim)) {
-            $output .= '<img src="' . esc_url($ozel_resim) . '" alt="Gizli İçerik Resmi" style="max-width:100%;height:auto;" />';
-        }
-        if (!empty($ozel_mesaj)) {
-            $output .= '<div class="gice-ozel-mesaj">' . wp_kses_post($ozel_mesaj) . '</div>';
+            if (!empty($ozel_resim_link)) {
+                $output .= '<a href="' . esc_url($ozel_resim_link) . '" target="_blank" rel="noopener"><img src="' . esc_url($ozel_resim) . '" alt="Gizli İçerik Resmi" style="max-width:100%;height:auto;" /></a>';
+            } else {
+                $output .= '<img src="' . esc_url($ozel_resim) . '" alt="Gizli İçerik Resmi" style="max-width:100%;height:auto;" />';
+            }
         }
         $output .= '</div>';
         return $output;
