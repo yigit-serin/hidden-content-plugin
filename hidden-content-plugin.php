@@ -2,7 +2,7 @@
 /*
 Plugin Name: Gizli İçerik Eklentisi
 Description: Belirlenen yazı veya kategorilerin içeriğini gizler ve yerine özel mesaj ve resim gösterir.
-Version: 1.0
+Version: 1.1.0
 Author: Yiğit Serin
 */
 
@@ -15,8 +15,16 @@ require_once plugin_dir_path(__FILE__) . 'admin-settings.php';
 
 // İçeriği gizleme filtresi
 function gice_gizli_icerik_filtre($content) {
-    // Sadece frontend'de çalışsın
-    if (is_user_logged_in() || (defined('REST_REQUEST') && REST_REQUEST) || (defined('WP_CLI') && WP_CLI) || (defined('EP_IS_DOING_INDEX') && EP_IS_DOING_INDEX)) {
+    // Sadece frontend'de, tekil yazı ve ana içerik döngüsünde çalışsın
+    if (
+        is_user_logged_in() ||
+        (defined('REST_REQUEST') && REST_REQUEST) ||
+        (defined('WP_CLI') && WP_CLI) ||
+        (defined('EP_IS_DOING_INDEX') && EP_IS_DOING_INDEX) ||
+        !is_singular('post') ||
+        !is_main_query() ||
+        !in_the_loop()
+    ) {
         return $content;
     }
     // Ayarları al
@@ -54,11 +62,12 @@ function gice_gizli_icerik_filtre($content) {
 
     if ($is_gizli) {
         $output = '<div class="gice-gizli-icerik">';
+        $img_style = 'max-width:600px;width:100%;height:auto;display:block;margin:auto;';
         if (!empty($ozel_resim)) {
             if (!empty($ozel_resim_link)) {
-                $output .= '<a href="' . esc_url($ozel_resim_link) . '" target="_blank" rel="noopener"><img src="' . esc_url($ozel_resim) . '" alt="Gizli İçerik Resmi" style="max-width:100%;height:auto;" /></a>';
+                $output .= '<a href="' . esc_url($ozel_resim_link) . '" target="_blank" rel="noopener"><img src="' . esc_url($ozel_resim) . '" alt="Gizli İçerik Resmi" style="' . esc_attr($img_style) . '" /></a>';
             } else {
-                $output .= '<img src="' . esc_url($ozel_resim) . '" alt="Gizli İçerik Resmi" style="max-width:100%;height:auto;" />';
+                $output .= '<img src="' . esc_url($ozel_resim) . '" alt="Gizli İçerik Resmi" style="' . esc_attr($img_style) . '" />';
             }
         }
         $output .= '</div>';
@@ -66,7 +75,7 @@ function gice_gizli_icerik_filtre($content) {
     }
     return $content;
 }
-add_filter('the_content', 'gice_gizli_icerik_filtre');
+add_filter('the_content', 'gice_gizli_icerik_filtre', 99);
 
 // ElasticPress ile yazının veya kategorilerinin gizli olup olmadığını post meta.hidden_content olarak ekle
 add_filter( 'ep_post_sync_args', function( $args, $post_id ) {
@@ -104,6 +113,6 @@ if (is_admin()) {
 }
 
 function gice_gizli_icerik_styles() {
-    echo '<style>.gice-gizli-icerik{text-align:center;padding:20px;background:#f7f7f7;border:1px solid #eee;border-radius:8px;}.gice-ozel-mesaj{margin-top:10px;font-size:18px;color:#333;}</style>';
+    echo '<style>.gice-gizli-icerik{text-align:center;padding:20px}</style>';
 }
 add_action('wp_head', 'gice_gizli_icerik_styles');
